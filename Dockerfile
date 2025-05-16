@@ -18,6 +18,7 @@ FROM openjdk:21-jdk-slim
 
 WORKDIR /app
 
+
 # Copy the jar from the build stage
 COPY --from=build /app/target/backend-0.0.1-SNAPSHOT.jar backend.jar
 
