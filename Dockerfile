@@ -1,14 +1,26 @@
-# Use OpenJDK 21 slim base image
-FROM openjdk:21-jdk-slim
+# Stage 1: Build the application using Maven
+FROM maven:3.9.4-eclipse-temurin-21 AS build
 
-# Set working directory
 WORKDIR /app
 
-# Copy the built jar file into the container
-COPY target/backend-0.0.1-SNAPSHOT.jar backend.jar
+# Copy pom.xml and download dependencies
+COPY pom.xml .
+RUN mvn dependency:go-offline
 
-# Expose port 8080 for the Spring Boot application
+# Copy source code
+COPY src ./src
+
+# Build the application
+RUN mvn clean package -DskipTests
+
+# Stage 2: Run the application with OpenJDK
+FROM openjdk:21-jdk-slim
+
+WORKDIR /app
+
+# Copy the jar from the build stage
+COPY --from=build /app/target/backend-0.0.1-SNAPSHOT.jar backend.jar
+
 EXPOSE 8080
 
-# Run the Spring Boot application
 ENTRYPOINT ["java", "-jar", "backend.jar"]
